@@ -1,0 +1,71 @@
+version: "3.7"
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: laravel-meilisearch-nginx
+    restart: unless-stopped
+    ports:
+      - 9595:80
+    volumes:
+      - ./:/var/www/html:cached
+      - ./.docker/nginx:/etc/nginx/conf.d
+    networks:
+      - laravel-meilisearch-network
+    depends_on:
+      - app
+
+  app:
+    build:
+      args:
+        user: Ridoy
+        uid: 1000
+      context: ./.docker/app
+      dockerfile: Dockerfile
+    image: laravel-meilisearch
+    container_name: laravel-meilisearch-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html:cached
+      - ./.docker/app/php-fpm.ini:/usr/local/etc/php/conf.d/99-app.ini
+    networks:
+      - laravel-meilisearch-network
+    depends_on:
+      - database
+
+  database:
+    image: mariadb:10.5.8
+    container_name: laravel-meilisearch-mariadb
+    restart: unless-stopped
+    ports:
+      - 3308:3304
+    volumes:
+      - laravel-meilisearch-volume:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+    networks:
+      - laravel-meilisearch-network
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: laravel-meilisearch-phpmyadmin
+    restart: unless-stopped
+    tty: true
+    depends_on:
+      - database
+    ports:
+      - 9596:80
+    environment:
+      PMA_HOST: database
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - laravel-meilisearch-network
+networks:
+  laravel-meilisearch-network:
+    driver: bridge
+
+volumes:
+  laravel-meilisearch-volume:
+    driver: local
