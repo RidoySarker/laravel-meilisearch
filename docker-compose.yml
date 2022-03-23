@@ -1,12 +1,5 @@
 version: "3.7"
 services:
-  meilisearch:
-    image: getmeili/meilisearch
-    command: ./meilisearch --master-key=masterKey --no-analytics
-    ports:
-        -   target: 7700
-            published: 7700
-            protocol: tcp
   nginx:
     image: nginx:alpine
     container_name: laravel-meilisearch-nginx
@@ -20,7 +13,6 @@ services:
       - laravel-meilisearch-network
     depends_on:
       - app
-
   app:
     build:
       args:
@@ -40,6 +32,17 @@ services:
     depends_on:
       - database
 
+  meilisearch:
+      image: getmeili/meilisearch
+      command: ./meilisearch --master-key=masterKey --no-analytics
+      ports:
+          -   target: 7700
+              published: 7700
+              protocol: tcp
+      volumes:
+          - ./meilisearch/data.ms:/data.ms
+      networks:
+          - laravel-meilisearch-network    
   database:
     image: mariadb:10.5.8
     container_name: laravel-meilisearch-mariadb

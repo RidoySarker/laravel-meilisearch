@@ -20,7 +20,6 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 
 RUN apt-get install -y nodejs
 
-
 # Create system user to run Composer and Artisan Commands
 RUN useradd -G www-data,root -u $uid -d /home/$user $user
 RUN mkdir -p /home/$user/.composer && \
@@ -30,3 +29,4 @@ RUN mkdir -p /home/$user/.composer && \
 WORKDIR /var/www/html
 
 USER $user
+
